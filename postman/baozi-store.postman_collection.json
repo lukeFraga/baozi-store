@@ -1,0 +1,343 @@
+{
+  "info": {
+    "name": "Baozi Store | API REST",
+    "description": "Rode as 12 requisições em ordem. Os POSTs guardam os IDs para as consultas e exclusões.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:8080"
+    },
+    {
+      "key": "nomeCliente",
+      "value": "ClienteExemplo"
+    },
+    {
+      "key": "clienteId",
+      "value": ""
+    },
+    {
+      "key": "produtoId",
+      "value": ""
+    },
+    {
+      "key": "pedidoId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Criar cliente",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/clientes",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nome\": \"{{nomeCliente}}\",\n  \"clienteDesde\": \"2026-11-26\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 201 Created\", () => pm.response.to.have.status(201));",
+              "pm.test(\"Retorna um ID gerado\", () => pm.expect(pm.response.json().id).to.be.a(\"number\"));",
+              "pm.test(\"Retorna a localização do novo recurso\", () => pm.expect(pm.response.headers.get(\"Location\")).to.match(/\\/clientes\\/\\d+$/));",
+              "if (pm.response.code === 201) pm.collectionVariables.set(\"clienteId\", String(pm.response.json().id));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Criar produto",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/produtos",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nome\": \"Baozi tradicional\",\n  \"preco\": 8.5,\n  \"estoque\": true\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 201 Created\", () => pm.response.to.have.status(201));",
+              "pm.test(\"Retorna um ID gerado\", () => pm.expect(pm.response.json().id).to.be.a(\"number\"));",
+              "pm.test(\"Retorna a localização do novo recurso\", () => pm.expect(pm.response.headers.get(\"Location\")).to.match(/\\/produtos\\/\\d+$/));",
+              "if (pm.response.code === 201) pm.collectionVariables.set(\"produtoId\", String(pm.response.json().id));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Criar pedido",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/pedidos",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"clienteId\": {{clienteId}},\n  \"produtoId\": {{produtoId}},\n  \"quantidade\": 3\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 201 Created\", () => pm.response.to.have.status(201));",
+              "pm.test(\"Retorna um ID gerado\", () => pm.expect(pm.response.json().id).to.be.a(\"number\"));",
+              "pm.test(\"Retorna a localização do novo recurso\", () => pm.expect(pm.response.headers.get(\"Location\")).to.match(/\\/pedidos\\/\\d+$/));",
+              "if (pm.response.code === 201) pm.collectionVariables.set(\"pedidoId\", String(pm.response.json().id));",
+              "pm.test(\"Grava o cliente, o produto e a quantidade\", () => {",
+              "    const pedido = pm.response.json();",
+              "    pm.expect(pedido.clienteId).to.eql(Number(pm.collectionVariables.get(\"clienteId\")));",
+              "    pm.expect(pedido.produtoId).to.eql(Number(pm.collectionVariables.get(\"produtoId\")));",
+              "    pm.expect(pedido.quantidade).to.eql(3);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Listar clientes",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/clientes"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200 OK\", () => pm.response.to.have.status(200));",
+              "pm.test(\"A lista inclui o registro criado\", () => {",
+              "    const id = Number(pm.collectionVariables.get(\"clienteId\"));",
+              "    pm.expect(pm.response.json().some(registro => registro.id === id)).to.eql(true);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Listar produtos",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/produtos"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200 OK\", () => pm.response.to.have.status(200));",
+              "pm.test(\"A lista inclui o registro criado\", () => {",
+              "    const id = Number(pm.collectionVariables.get(\"produtoId\"));",
+              "    pm.expect(pm.response.json().some(registro => registro.id === id)).to.eql(true);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Listar pedidos",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/pedidos"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200 OK\", () => pm.response.to.have.status(200));",
+              "pm.test(\"A lista inclui o registro criado\", () => {",
+              "    const id = Number(pm.collectionVariables.get(\"pedidoId\"));",
+              "    pm.expect(pm.response.json().some(registro => registro.id === id)).to.eql(true);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Consultar cliente",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/clientes/{{clienteId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200 OK\", () => pm.response.to.have.status(200));",
+              "pm.test(\"Retorna o ID consultado\", () => {",
+              "    const id = Number(pm.collectionVariables.get(\"clienteId\"));",
+              "    pm.expect(pm.response.json().id).to.eql(id);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Consultar produto",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/produtos/{{produtoId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200 OK\", () => pm.response.to.have.status(200));",
+              "pm.test(\"Retorna o ID consultado\", () => {",
+              "    const id = Number(pm.collectionVariables.get(\"produtoId\"));",
+              "    pm.expect(pm.response.json().id).to.eql(id);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Consultar pedido",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/pedidos/{{pedidoId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200 OK\", () => pm.response.to.have.status(200));",
+              "pm.test(\"Retorna o ID consultado\", () => {",
+              "    const id = Number(pm.collectionVariables.get(\"pedidoId\"));",
+              "    pm.expect(pm.response.json().id).to.eql(id);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Excluir pedido",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": "{{baseUrl}}/pedidos/{{pedidoId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 204 No Content\", () => pm.response.to.have.status(204));",
+              "pm.test(\"Resposta sem corpo\", () => pm.expect(pm.response.text()).to.eql(\"\"));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Excluir produto",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": "{{baseUrl}}/produtos/{{produtoId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 204 No Content\", () => pm.response.to.have.status(204));",
+              "pm.test(\"Resposta sem corpo\", () => pm.expect(pm.response.text()).to.eql(\"\"));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Excluir cliente",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": "{{baseUrl}}/clientes/{{clienteId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 204 No Content\", () => pm.response.to.have.status(204));",
+              "pm.test(\"Resposta sem corpo\", () => pm.expect(pm.response.text()).to.eql(\"\"));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
